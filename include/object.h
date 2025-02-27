@@ -26,6 +26,10 @@ struct ObjString {
   Obj Obj;
   int length;
   char *chars;
+
+  // Hash value for the string
+  // Immutable strings make sure this value never changes
+  uint32_t hash;
 };
 
 ObjString *takeString(char *chars, int length);
