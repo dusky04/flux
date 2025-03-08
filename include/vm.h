@@ -3,6 +3,7 @@
 
 #include "chunk.h"
 #include "common.h"
+#include "table.h"
 
 #define MAX_STACK_LIMIT 256
 
@@ -23,6 +24,8 @@ typedef struct {
   // Array of all the objects created dynamically during runtime
   // Done to free all the objects
   Obj *objects;
+
+  Table strings;
 } VM;
 
 typedef enum {
