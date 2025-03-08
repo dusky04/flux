@@ -4,6 +4,7 @@
 #include "value.h"
 
 // Simple Key-Value pair
+// Currently, only strings are hashed
 typedef struct {
   ObjString *key;
   Value value;
@@ -23,7 +24,9 @@ typedef struct {
 
 void initTable(Table *table);
 void freeTable(Table *table);
+bool tableGet(Table *table, ObjString *key, Value *value);
 bool tableSet(Table *table, ObjString *key, Value value);
+bool tableDelete(Table *table, ObjString *key);
 void tableAddAll(Table *from, Table *to);
 
 #endif
