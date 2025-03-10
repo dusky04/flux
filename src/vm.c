@@ -42,10 +42,13 @@ static void runTimeError(const char *format, ...) {
 void initVM() {
   resetStack();
   vm.objects = NULL;
+
+  initTable(&vm.globals);
   initTable(&vm.strings);
 }
 
 void freeVM() {
+  freeTable(&vm.globals);
   freeTable(&vm.strings);
   freeObjects();
 }
@@ -93,6 +96,10 @@ static InterpretResult run() {
 // For OP_CONSTANT, the next byte contains the index of the constant
 // stored in the chunk
 #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()])
+
+// It reads a one-byte operand from the bytecode chunk. It treats that as an
+// index into the chunk’s constant table and returns the string at that index
+#define READ_STRING() AS_STRING(READ_CONSTANT())
 
 #define BINARY_OP(valueType, op)                                               \
   do {                                                                         \
@@ -183,17 +190,47 @@ static InterpretResult run() {
       }
       push(NUMBER_VAL(-AS_NUMBER(pop())));
       break;
-    case OP_RETURN: {
-      printf("Value popped by OP_RETURN: ");
+    case OP_RETURN:
+      // printf("Value popped by OP_RETURN: ");
+      // printValue(pop());
+      // printf("\n");
+
+      // Exit interpreter
+      // Replaced by print right now
+      return INTERPRET_OK;
+    case OP_POP:
+      pop();
+      break;
+    case OP_DEFINE_GLOBAL: {
+      // Get name of the variable from the constants table
+      ObjString *name = READ_STRING();
+      // Take value at top of the stack and store in a hash table with the name
+      // as its key and value which is at the stack top
+      tableSet(&vm.globals, name, peek(0));
+      pop();
+      break;
+    }
+    case OP_GET_GLOBAL: {
+      ObjString *name = READ_STRING();
+      Value value;
+      if (!tableGet(&vm.globals, name, &value)) {
+        runTimeError("Undefined variable '%s'.", name->chars);
+        return INTERPRET_RUNTIME_ERROR;
+      }
+      // Push the value to the stack if the variable is defined previously
+      push(value);
+      break;
+    }
+    case OP_PRINT:
       printValue(pop());
       printf("\n");
-      return INTERPRET_OK;
-    }
+      break;
     }
   }
 
 #undef READ_BYTE
 #undef READ_CONSTANT
+#undef READ_STRING
 #undef BINARY_OP
 }
 
