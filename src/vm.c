@@ -221,6 +221,16 @@ static InterpretResult run() {
       push(value);
       break;
     }
+    case OP_SET_GLOBAL: {
+      ObjString *name = READ_STRING();
+      // If the variable hasn't been declared previously, we through an error
+      if (tableSet(&vm.globals, name, peek(0))) {
+        tableDelete(&vm.globals, name);
+        runTimeError("Undefined variable '%s'.", name->chars);
+        return INTERPRET_RUNTIME_ERROR;
+      }
+      break;
+    }
     case OP_PRINT:
       printValue(pop());
       printf("\n");
