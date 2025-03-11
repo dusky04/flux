@@ -2,6 +2,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -201,6 +202,11 @@ static InterpretResult run() {
     case OP_POP:
       pop();
       break;
+    case OP_GET_LOCAL: {
+      uint8_t slot = READ_BYTE();
+      push(vm.stack[slot]);
+      break;
+    }
     case OP_DEFINE_GLOBAL: {
       // Get name of the variable from the constants table
       ObjString *name = READ_STRING();
@@ -208,6 +214,11 @@ static InterpretResult run() {
       // as its key and value which is at the stack top
       tableSet(&vm.globals, name, peek(0));
       pop();
+      break;
+    }
+    case OP_SET_LOCAL: {
+      uint8_t slot = READ_BYTE();
+      vm.stack[slot] = peek(0);
       break;
     }
     case OP_GET_GLOBAL: {
